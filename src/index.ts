@@ -1,1 +1,7 @@
-console.log(process.env.PORT)
+import express from 'express';
+
+const app = express();
+
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
