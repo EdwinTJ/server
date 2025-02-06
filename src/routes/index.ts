@@ -6,12 +6,12 @@ import serviceRouter from "./serviceRoutes";
 import stylistRouter from "./stylistRoutes";
 
 // Middleware
-import { validateService } from "../middleware/validateService";
+import { dbErrorHandler } from "../middleware/validateService";
 import { validateStylist } from "../middleware/validateStylist";
 const router = Router();
 
 router.use("/users", userRoutes);
 router.use("/availability", availabilityRouter);
-router.use("/services", serviceRouter, validateService);
+router.use("/services", serviceRouter, dbErrorHandler);
 router.use("/stylists", stylistRouter, validateStylist);
 export default router;

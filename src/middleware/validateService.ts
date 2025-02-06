@@ -1,42 +1,26 @@
-// src/middleware/validateService.ts
 import { Request, Response, NextFunction } from "express";
-import { Service } from "../types/service";
 
-export const validateService = (
+export const dbErrorHandler = (
+  error: any,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const service: Service = req.body;
-
-  // Basic validation
-  if (!service.name || typeof service.name !== "string") {
-    return res.status(400).json({ message: "Valid service name is required" });
+  if (error.code === "23505") {
+    // Unique violation
+    return res.status(409).json({
+      message: "Resource already exists",
+      error: error.detail,
+    });
   }
 
-  if (
-    !service.price ||
-    typeof service.price !== "number" ||
-    service.price <= 0
-  ) {
-    return res.status(400).json({ message: "Valid price is required" });
+  if (error.code === "23503") {
+    // Foreign key violation
+    return res.status(400).json({
+      message: "Invalid reference",
+      error: error.detail,
+    });
   }
 
-  if (
-    !service.duration ||
-    typeof service.duration !== "number" ||
-    service.duration <= 0
-  ) {
-    return res.status(400).json({ message: "Valid duration is required" });
-  }
-
-  if (!service.description || typeof service.description !== "string") {
-    return res.status(400).json({ message: "Valid description is required" });
-  }
-
-  if (service.image && typeof service.image !== "string") {
-    return res.status(400).json({ message: "Image URL must be a string" });
-  }
-
-  next();
+  next(error);
 };

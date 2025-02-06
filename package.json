@@ -8,14 +8,20 @@
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "test": "jest",
+    "init-db": "chmod +x ./scripts/init-db.sh && ./scripts/init-db.sh",
+    "seed-db": "ts-node ./scripts/seed-db.ts",
+    "setup-db": "npm run init-db && npm run seed-db"
   },
   "dependencies": {
+    "@types/pg": "^8.11.11",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.4.7",
     "express": "^4.18.2",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "pg": "^8.13.1",
+    "pg-pool": "^3.7.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

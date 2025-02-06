@@ -1,16 +1,13 @@
-// src/controllers/serviceController.ts
 import { Request, Response } from "express";
-import { Service } from "../types/service";
-
-// In-memory store for services (replace with database in production)
-let services: Record<string, Service> = {};
+// import { Service } from "../types/service";
+import pool from "../config/database";
 
 export const serviceController = {
   // Get all services
   getAllServices: async (req: Request, res: Response) => {
     try {
-      const servicesList = Object.values(services);
-      res.status(200).json(servicesList);
+      const result = await pool.query("SELECT * FROM services");
+      res.status(200).json(result.rows);
     } catch (error) {
       res.status(500).json({ message: "Error fetching services", error });
     }
@@ -19,11 +16,15 @@ export const serviceController = {
   // Get a single service by ID
   getServiceById: async (req: Request, res: Response) => {
     try {
-      const service = services[req.params.id];
-      if (!service) {
+      const { id } = req.params;
+      const result = await pool.query("SELECT * FROM services WHERE id = $1", [
+        id,
+      ]);
+
+      if (result.rows.length === 0) {
         return res.status(404).json({ message: "Service not found" });
       }
-      res.status(200).json(service);
+      res.status(200).json(result.rows[0]);
     } catch (error) {
       res.status(500).json({ message: "Error fetching service", error });
     }
@@ -32,24 +33,17 @@ export const serviceController = {
   // Create a new service
   createService: async (req: Request, res: Response) => {
     try {
-      const newService: Service = req.body;
+      const { name, price, description, duration, image } = req.body;
 
-      // Validate required fields
-      if (
-        !newService.name ||
-        !newService.price ||
-        !newService.duration ||
-        !newService.description
-      ) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+      const result = await pool.query(
+        `INSERT INTO services (name, price, description, duration, image)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING *`,
+        [name, price, description, duration, image]
+      );
 
-      // Generate a unique ID (you might want to use UUID in production)
-      const id = Date.now().toString();
-      services[id] = { ...newService, id };
-
-      console.log("Service created:", services[id]);
-      res.status(201).json(services[id]);
+      console.log("Service created:", result.rows[0]);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       res.status(500).json({ message: "Error creating service", error });
     }
@@ -59,14 +53,20 @@ export const serviceController = {
   updateService: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const updatedService: Service = req.body;
+      const { name, price, description, duration, image } = req.body;
 
-      if (!services[id]) {
+      const result = await pool.query(
+        `UPDATE services 
+         SET name = $1, price = $2, description = $3, duration = $4, image = $5
+         WHERE id = $6
+         RETURNING *`,
+        [name, price, description, duration, image, id]
+      );
+
+      if (result.rows.length === 0) {
         return res.status(404).json({ message: "Service not found" });
       }
-
-      services[id] = { ...services[id], ...updatedService };
-      res.status(200).json(services[id]);
+      res.status(200).json(result.rows[0]);
     } catch (error) {
       res.status(500).json({ message: "Error updating service", error });
     }
@@ -77,11 +77,14 @@ export const serviceController = {
     try {
       const { id } = req.params;
 
-      if (!services[id]) {
+      const result = await pool.query(
+        "DELETE FROM services WHERE id = $1 RETURNING *",
+        [id]
+      );
+
+      if (result.rows.length === 0) {
         return res.status(404).json({ message: "Service not found" });
       }
-
-      delete services[id];
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Error deleting service", error });
