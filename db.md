@@ -60,6 +60,8 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin1;
 \d services    -- Shows table structure
 \q    -- Quits the PostgreSQL CLI
 SELECT * FROM services;    -- Shows all rows in the services table
+\l   -- Lists all databases
+\c salon_database    -- Connects to the salon_database
 ```
 
 ## Check DB still running
@@ -130,4 +132,13 @@ sudo service postgresql start
 ```bash
 # Stop the PostgreSQL service
 sudo service postgresql stop
+```
+
+chmod +x tmux_script.sh
+./tmux_script.sh
+
+When creating a new table the user must have the following permissions:
+
+```sql
+GRANT USAGE, SELECT ON SEQUENCE stylists_id_seq TO admin1;
 ```

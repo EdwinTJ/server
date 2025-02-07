@@ -4,7 +4,6 @@ import userRoutes from "./userRoutes";
 import availabilityRouter from "./availabilityRoutes";
 import serviceRouter from "./serviceRoutes";
 import stylistRouter from "./stylistRoutes";
-
 // Middleware
 import { dbErrorHandler } from "../middleware/validateService";
 import { validateStylist } from "../middleware/validateStylist";
