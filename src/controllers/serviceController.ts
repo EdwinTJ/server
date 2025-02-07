@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-// import { Service } from "../types/service";
+import { Service } from "../types/service";
 import pool from "../config/database";
 
 export const serviceController = {
@@ -31,10 +31,21 @@ export const serviceController = {
   },
 
   // Create a new service
-  createService: async (req: Request, res: Response) => {
+  createService: async (req: Request<Omit<Service, "id">>, res: Response) => {
     try {
       const { name, price, description, duration, image } = req.body;
 
+      if (!name || !price || !description || !duration) {
+        return res.status(400).json({
+          message: "Missing required fields",
+        });
+      }
+
+      if (price <= 0 || duration <= 0) {
+        return res.status(400).json({
+          message: "Price and duration must be positive numbers",
+        });
+      }
       const result = await pool.query(
         `INSERT INTO services (name, price, description, duration, image)
          VALUES ($1, $2, $3, $4, $5)
