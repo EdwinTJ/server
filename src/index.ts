@@ -15,7 +15,14 @@ const port = process.env.PORT || 3000;
 const corsOptions = {
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+  ],
+  exposedHeaders: ["Content-Range", "X-Content-Range"],
   credentials: true,
   maxAge: 600, // Cache preflight requests for 10 minutes
 };

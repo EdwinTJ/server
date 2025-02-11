@@ -1,31 +1,39 @@
 import { Request, Response } from "express";
+import { AvailabilityModel } from "../models/availabilityModel";
 import { Availability } from "../types/availability";
 
-// Get all availabilities
 export const getAvailabilities = async (req: Request, res: Response) => {
   try {
-    // TODO: Add database integration
-    console.log("Getting all availabilities");
-    const availabilities: Availability[] = [];
+    const stylistId = parseInt(req.params.stylistId);
+
+    if (isNaN(stylistId)) {
+      return res.status(400).json({ error: "Invalid stylist ID" });
+    }
+    const availabilities = await AvailabilityModel.findAllByStylistId(
+      stylistId
+    );
+
+    if (!availabilities || availabilities.length === 0) {
+      return res.status(404).json({
+        error: `No availabilities found for stylist ${stylistId}`,
+      });
+    }
+
     res.status(200).json(availabilities);
   } catch (error) {
-    console.error("Error getting availabilities:", error);
+    console.error("Error in getAvailabilities:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-// Get availability by ID
 export const getAvailabilityById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    console.log("Getting availability by ID:", id);
+    const availability = await AvailabilityModel.findById(id);
 
-    // TODO: Add database integration
-    const availability: Availability = {
-      id,
-      date: new Date(),
-      timeSlots: [],
-    };
+    if (!availability) {
+      return res.status(404).json({ error: "Availability not found" });
+    }
 
     res.status(200).json(availability);
   } catch (error) {
@@ -34,20 +42,15 @@ export const getAvailabilityById = async (req: Request, res: Response) => {
   }
 };
 
-// Create new availability
 export const createAvailability = async (req: Request, res: Response) => {
   try {
-    const availabilityData: Availability = req.body;
-    console.log("Creating new availability:", availabilityData);
-
-    // TODO: Add database integration
-    // For now, just echo back the data with a generated ID
-    const newAvailability = {
-      ...availabilityData,
-      id: Date.now().toString(),
-      date: new Date(availabilityData.date), // Ensure date is properly parsed
+    const availabilityData: Omit<Availability, "id"> = {
+      date: new Date(req.body.date),
+      timeSlots: req.body.timeSlots,
+      stylist: req.body.stylist || "1", // Default to stylist ID 1
     };
 
+    const newAvailability = await AvailabilityModel.create(availabilityData);
     res.status(201).json(newAvailability);
   } catch (error) {
     console.error("Error creating availability:", error);
@@ -55,19 +58,23 @@ export const createAvailability = async (req: Request, res: Response) => {
   }
 };
 
-// Update availability
 export const updateAvailability = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const availabilityData: Availability = req.body;
-    console.log("Updating availability:", id, availabilityData);
-
-    // TODO: Add database integration
-    const updatedAvailability = {
-      ...availabilityData,
-      id,
-      date: new Date(availabilityData.date),
+    const availabilityData: Partial<Availability> = {
+      date: req.body.date ? new Date(req.body.date) : undefined,
+      timeSlots: req.body.timeSlots,
+      stylist: req.body.stylist,
     };
+
+    const updatedAvailability = await AvailabilityModel.update(
+      id,
+      availabilityData
+    );
+
+    if (!updatedAvailability) {
+      return res.status(404).json({ error: "Availability not found" });
+    }
 
     res.status(200).json(updatedAvailability);
   } catch (error) {
@@ -76,16 +83,19 @@ export const updateAvailability = async (req: Request, res: Response) => {
   }
 };
 
-// Delete availability
 export const deleteAvailability = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    console.log("Deleting availability:", id);
+    const deletedAvailability = await AvailabilityModel.delete(id);
 
-    // TODO: Add database integration
-    res
-      .status(200)
-      .json({ message: `Availability ${id} deleted successfully` });
+    if (!deletedAvailability) {
+      return res.status(404).json({ error: "Availability not found" });
+    }
+
+    res.status(200).json({
+      message: `Availability ${id} deleted successfully`,
+      deletedAvailability,
+    });
   } catch (error) {
     console.error("Error deleting availability:", error);
     res.status(500).json({ error: "Internal server error" });

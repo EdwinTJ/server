@@ -46,6 +46,20 @@ CREATE TABLE services (
     image VARCHAR(255)
 );
 
+salon_database=# CREATE TABLE availabilities (
+    id SERIAL PRIMARY KEY,
+    date DATE NOT NULL,
+    time_slots TEXT[] NOT NULL, -- PostgreSQL array to store multiple time slots
+    stylist_id INTEGER NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_stylist
+        FOREIGN KEY (stylist_id)
+        REFERENCES stylists(id)
+        ON DELETE CASCADE
+);
+
+
 CREATE USER admin1 WITH PASSWORD 'admin123';
 GRANT ALL PRIVILEGES ON DATABASE salon_database TO admin1;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin1;
@@ -141,4 +155,6 @@ When creating a new table the user must have the following permissions:
 
 ```sql
 GRANT USAGE, SELECT ON SEQUENCE stylists_id_seq TO admin1;
+GRANT ALL PRIVILEGES ON TABLE availabilities TO your_user;
+
 ```

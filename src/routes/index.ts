@@ -7,6 +7,7 @@ import stylistRouter from "./stylistRoutes";
 // Middleware
 import { dbErrorHandler } from "../middleware/validateService";
 import { validateStylist } from "../middleware/validateStylist";
+
 const router = Router();
 
 router.use("/users", userRoutes);

@@ -9,5 +9,5 @@ export interface Availability {
   id?: string;
   date: Date;
   timeSlots: string[];
-  userId?: string;
+  stylist?: string;
 }

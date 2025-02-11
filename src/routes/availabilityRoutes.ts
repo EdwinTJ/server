@@ -6,22 +6,14 @@ import {
   updateAvailability,
   deleteAvailability,
 } from "../controllers/availabilityController";
+import { validateAvailabilityData } from "../middleware/validateAvailability";
 
 const availabilityRouter = Router();
 
-// GET /api/availability - Get all availabilities
-availabilityRouter.get("/", getAvailabilities);
-
-// GET /api/availability/:id - Get availability by ID
+availabilityRouter.get("/:stylistId", getAvailabilities);
 availabilityRouter.get("/:id", getAvailabilityById);
-
-// POST /api/availability - Create new availability
-availabilityRouter.post("/", createAvailability);
-
-// PUT /api/availability/:id - Update availability
-availabilityRouter.put("/:id", updateAvailability);
-
-// DELETE /api/availability/:id - Delete availability
+availabilityRouter.post("/", validateAvailabilityData, createAvailability);
+availabilityRouter.put("/:id", validateAvailabilityData, updateAvailability);
 availabilityRouter.delete("/:id", deleteAvailability);
 
 export default availabilityRouter;
