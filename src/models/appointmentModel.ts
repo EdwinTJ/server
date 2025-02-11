@@ -4,43 +4,48 @@ import { Appointment, AppointmentService } from "../types";
 import { DBAppointment } from "../types/appointment";
 
 export const AppointmentModel = {
-  async create(appointment: Appointment, services: AppointmentService[]) {
-    // Use a transaction to ensure all operations succeed or fail together
+  async create(
+    appointmentData: Appointment,
+    services: AppointmentService[]
+  ): Promise<Appointment> {
     const client = await pool.connect();
-
     try {
       await client.query("BEGIN");
 
-      // Create the appointment
+      // First insert the appointment
       const appointmentResult = await client.query(
         `INSERT INTO appointments 
-         (customer_id, stylist_id, appointment_date, appointment_time, status, total_amount)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *`,
+        (customer_id, stylist_id, appointment_date, appointment_time, status, total_amount)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id`,
         [
-          appointment.customerId,
-          appointment.stylistId,
-          appointment.appointmentDate,
-          appointment.appointmentTime,
-          appointment.status,
-          appointment.totalAmount,
+          appointmentData.customerId,
+          appointmentData.stylistId,
+          appointmentData.appointmentDate,
+          appointmentData.appointmentTime,
+          appointmentData.status,
+          appointmentData.totalAmount,
         ]
       );
 
-      const newAppointment = appointmentResult.rows[0];
+      const appointmentId = appointmentResult.rows[0].id;
 
-      // Create appointment services
+      // Then insert the appointment services
       for (const service of services) {
         await client.query(
           `INSERT INTO appointment_services 
-           (appointment_id, service_id, price)
-           VALUES ($1, $2, $3)`,
-          [newAppointment.id, service.serviceId, service.price]
+          (appointment_id, service_id, price)
+          VALUES ($1, $2, $3)`,
+          [appointmentId, service.serviceId, service.price]
         );
       }
 
       await client.query("COMMIT");
-      return newAppointment;
+
+      return {
+        ...appointmentData,
+        id: appointmentId,
+      };
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
@@ -69,9 +74,9 @@ export const AppointmentModel = {
     return result.rows;
   },
 
-  async findById(id: number): Promise<DBAppointment | null> {
-    const result = await pool.query(
-      `SELECT 
+  async findById(appointmentId: number) {
+    const query = `
+      SELECT 
         a.*,
         c.first_name,
         c.last_name,
@@ -80,19 +85,21 @@ export const AppointmentModel = {
         json_agg(
           json_build_object(
             'id', aps.id,
-            'serviceId', aps.service_id,
+            'serviceId', s.id,
+            'serviceName', s.name,
             'price', aps.price
           )
-        ) as services
+        ) FILTER (WHERE aps.id IS NOT NULL) as services
       FROM appointments a
       LEFT JOIN customers c ON a.customer_id = c.id
       LEFT JOIN appointment_services aps ON a.id = aps.appointment_id
+      LEFT JOIN services s ON aps.service_id = s.id
       WHERE a.id = $1
-      GROUP BY a.id, c.id`,
-      [id]
-    );
+      GROUP BY a.id, c.id, c.first_name, c.last_name, c.email, c.phone;
+    `;
 
-    return result.rows[0] || null;
+    const result = await pool.query(query, [appointmentId]);
+    return result.rows[0];
   },
 
   async updateStatus(id: number, status: Appointment["status"]) {
