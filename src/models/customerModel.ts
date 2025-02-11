@@ -27,4 +27,10 @@ export const CustomerModel = {
     ]);
     return result.rows[0];
   },
+
+  async getAll(): Promise<Customer[]> {
+    const result = await pool.query("SELECT * FROM customers");
+
+    return result.rows;
+  },
 };

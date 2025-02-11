@@ -37,4 +37,14 @@ export const customerController = {
       res.status(500).json({ error: "Failed to fetch customer" });
     }
   },
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const customers = await CustomerModel.getAll();
+      res.json(customers);
+    } catch (error) {
+      console.error("Error in getAll:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  },
 };
