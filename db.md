@@ -76,6 +76,8 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO admin1;
 SELECT * FROM services;    -- Shows all rows in the services table
 \l   -- Lists all databases
 \c salon_database    -- Connects to the salon_database
+
+SELECT * FROM table_name  -- Check table content
 ```
 
 ## Check DB still running
@@ -154,7 +156,7 @@ chmod +x tmux_script.sh
 When creating a new table the user must have the following permissions:
 
 ```sql
-GRANT USAGE, SELECT ON SEQUENCE stylists_id_seq TO admin1;
+GRANT USAGE, SELECT ON SEQUENCE customers_id_seq TO admin1;
 GRANT ALL PRIVILEGES ON TABLE availabilities TO your_user;
 
 ```
