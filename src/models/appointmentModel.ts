@@ -69,24 +69,30 @@ export const AppointmentModel = {
     return result.rows;
   },
 
-  async findById(id: number) {
+  async findById(id: number): Promise<DBAppointment | null> {
     const result = await pool.query(
       `SELECT 
-         a.*,
-         json_agg(
-           json_build_object(
-             'id', as_service.id,
-             'serviceId', as_service.service_id,
-             'price', as_service.price
-           )
-         ) as services
-       FROM appointments a
-       LEFT JOIN appointment_services as_service ON a.id = as_service.appointment_id
-       WHERE a.id = $1
-       GROUP BY a.id`,
+        a.*,
+        c.first_name,
+        c.last_name,
+        c.email,
+        c.phone,
+        json_agg(
+          json_build_object(
+            'id', aps.id,
+            'serviceId', aps.service_id,
+            'price', aps.price
+          )
+        ) as services
+      FROM appointments a
+      LEFT JOIN customers c ON a.customer_id = c.id
+      LEFT JOIN appointment_services aps ON a.id = aps.appointment_id
+      WHERE a.id = $1
+      GROUP BY a.id, c.id`,
       [id]
     );
-    return result.rows[0];
+
+    return result.rows[0] || null;
   },
 
   async updateStatus(id: number, status: Appointment["status"]) {
