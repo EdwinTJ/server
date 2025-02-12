@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Service } from "../types/service";
 import pool from "../config/database";
-
+import { ServiceModel } from "../models/services";
 export const serviceController = {
   // Get all services
   getAllServices: async (req: Request, res: Response) => {
@@ -88,12 +88,9 @@ export const serviceController = {
     try {
       const { id } = req.params;
 
-      const result = await pool.query(
-        "DELETE FROM services WHERE id = $1 RETURNING *",
-        [id]
-      );
-
-      if (result.rows.length === 0) {
+      const result = ServiceModel.delete(parseInt(id));
+      // Check if service was found
+      if (!result) {
         return res.status(404).json({ message: "Service not found" });
       }
       res.status(204).send();

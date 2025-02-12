@@ -1,13 +1,7 @@
 import { Service } from "../types/service";
-import { Pool } from "pg";
-import pool from "@/config/database";
+import pool from "../config/database";
 
-export class ServiceModel {
-  private pool: Pool;
-  constructor() {
-    this.pool = pool;
-  }
-
+export const ServiceModel = {
   async create(service: Service): Promise<Service> {
     const query = `
         INSERT INTO services (price, name, description, duration, image)
@@ -22,15 +16,27 @@ export class ServiceModel {
       service.image,
     ];
 
-    const result = await this.pool.query(query, values);
+    const result = await pool.query(query, values);
     return result.rows[0];
-  }
+  },
 
   async getALl(): Promise<Service[]> {
     const query = `
         SELECT * FROM services;
         `;
-    const result = await this.pool.query(query);
+    const result = await pool.query(query);
     return result.rows;
-  }
-}
+  },
+
+  async delete(id: number): Promise<Service> {
+    const query = `
+        DELETE FROM services
+        WHERE id = $1
+        RETURNING *;
+        `;
+    const values = [id];
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  },
+};
