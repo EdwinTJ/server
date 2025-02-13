@@ -10,7 +10,7 @@ import { validateAvailabilityData } from "../middleware/validateAvailability";
 
 const availabilityRouter = Router();
 
-availabilityRouter.get("/:stylistId", getAvailabilities);
+availabilityRouter.get("/stylist/:stylistId", getAvailabilities);
 availabilityRouter.get("/:id", getAvailabilityById);
 availabilityRouter.post("/", validateAvailabilityData, createAvailability);
 availabilityRouter.put("/:id", validateAvailabilityData, updateAvailability);
