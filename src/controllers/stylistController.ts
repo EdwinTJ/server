@@ -1,15 +1,14 @@
 // src/controllers/stylistController.ts
 import { Request, Response } from "express";
 import { StylistModel } from "../models/stylistModel";
-import { hashPassword } from "../utils/passwordUtils";
-
+import { hashPassword, comparePassword } from "../utils/passwordUtils";
 const stylistModel = new StylistModel();
 
 export const stylistController = {
   // Register new stylist
   registerStylist: async (req: Request, res: Response) => {
     try {
-      const { email, password, firstName, lastName, phone } = req.body;
+      const { email, password, firstName, lastName, phone, role } = req.body;
 
       // Check if stylist already exists
       const existingStylist = await stylistModel.getByEmail(email);
@@ -27,6 +26,7 @@ export const stylistController = {
         firstName,
         lastName,
         phone,
+        role,
       });
 
       // Remove password from response
@@ -122,6 +122,41 @@ export const stylistController = {
       console.error("Error deleting stylist:", error);
       res.status(500).json({
         message: "Error deleting stylist",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  },
+
+  loginStylist: async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+
+      const stylist = await stylistModel.getByEmail(email);
+      if (!stylist) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isValidPassword = await comparePassword(password, stylist.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      // Remove password from response
+      const { password: _, ...stylistResponse } = stylist;
+
+      // Include role-based authorization info in response
+      res.status(200).json({
+        message: "Login successful",
+        stylist: stylistResponse,
+        auth: {
+          isAdmin: stylist.role === "admin",
+          role: stylist.role,
+        },
+      });
+    } catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({
+        message: "Error during login",
         error: error instanceof Error ? error.message : "Unknown error",
       });
     }

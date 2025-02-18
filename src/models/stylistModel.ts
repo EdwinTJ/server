@@ -13,16 +13,17 @@ export class StylistModel {
     stylist: Omit<Stylist, "id" | "createdAt" | "updatedAt">
   ): Promise<Stylist> {
     const query = `
-            INSERT INTO stylists (email, password, first_name, last_name, phone)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING *;
-        `;
+    INSERT INTO stylists (email, password, first_name, last_name, phone, role)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *;
+  `;
     const values = [
       stylist.email,
       stylist.password,
       stylist.firstName,
       stylist.lastName,
       stylist.phone,
+      stylist.role || "stylist",
     ];
 
     const result = await this.pool.query(query, values);
@@ -96,6 +97,7 @@ export class StylistModel {
       firstName: row.first_name,
       lastName: row.last_name,
       phone: row.phone,
+      role: row.role,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

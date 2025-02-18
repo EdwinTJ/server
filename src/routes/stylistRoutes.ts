@@ -9,5 +9,6 @@ stylistRouter.get("/", stylistController.getAllStylists);
 stylistRouter.get("/:id", stylistController.getStylistById);
 stylistRouter.put("/:id", stylistController.updateStylist);
 stylistRouter.delete("/:id", stylistController.deleteStylist);
+stylistRouter.post("/login", stylistController.loginStylist);
 
 export default stylistRouter;

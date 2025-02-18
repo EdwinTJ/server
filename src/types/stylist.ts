@@ -5,6 +5,7 @@ export interface Stylist {
   firstName: string;
   lastName: string;
   phone: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
